@@ -27,10 +27,49 @@ same public policy.
 | **Auditable output** | Each completed confidential inference carries a signed receipt that can be reviewed in the Verification Center. |
 | **Local conversation storage** | The confidential Open WebUI distribution stores saved conversations in the browser's IndexedDB, with an opt-in temporary-chat mode. |
 
+## Meet ACK · the Confidential Console
+
+[**Adverserial Confidential Kit →**](https://github.com/AdverserialAI/adverserial-confidential-kit)
+
+One setup for confidential coding with **Claude Code, Codex, OpenCode, Pi,
+Oh My Pi, ZCode, DeepSeek Harness, Hermes and Kimi Code**.
+
+```sh
+npm install -g github:AdverserialAI/adverserial-confidential-kit
+ack init
+ack code
+```
+
+Enter your API key once; ACK prepares the local gateway and matching verification
+policy. Run `ack` for the interactive console, or use direct commands.
+
+| In the console | What you get |
+| --- | --- |
+| **Code** | Searchable harness picker, installed-tool detection and terminal handoff. |
+| **Vault** | Named API keys, masked entry, add/replace/switch/delete, AES-256-GCM encryption backed by macOS Keychain. |
+| **Models** | Public model discovery and activation with an active matching policy. |
+| **Attestation** | Fresh hardware and pinned-receipt verification; evidence expiry is visible. |
+| **Swarms** | Selected harness workers, shared local briefs and explicit collaboration rooms. |
+| **Workspace** | Diagnostics, runtime lifecycle management, colorful ASCII branding and four console themes. |
+
+ACK currently requires **macOS, Node.js 18+, Python 3.10+**, an Adverserial API
+key and separately installed harness CLIs. Native verification commands and
+footers depend on the harness; the [integration guide](https://github.com/AdverserialAI/adverserial-confidential-kit#coding-harnesses)
+documents each one. The source install above is available now; npm registry
+installation is documented for the first published release.
+
+[Installation](https://github.com/AdverserialAI/adverserial-confidential-kit#install--initialize--code) ·
+[Harness integrations](https://github.com/AdverserialAI/adverserial-confidential-kit#coding-harnesses) ·
+[Verification](https://github.com/AdverserialAI/adverserial-confidential-kit#attestation-and-verification) ·
+[Encrypted vault](https://github.com/AdverserialAI/adverserial-confidential-kit#encrypted-api-key-profiles) ·
+[Collaboration](https://github.com/AdverserialAI/adverserial-confidential-kit#confidential-swarms) ·
+[License](https://github.com/AdverserialAI/adverserial-confidential-kit/blob/main/LICENSE)
+
 ## Public repository map
 
 | Repository | Purpose | Tags |
 | --- | --- | --- |
+| [adverserial-confidential-kit](https://github.com/AdverserialAI/adverserial-confidential-kit) | ACK: interactive confidential console, encrypted key vault, gateway lifecycle, model selection and multi-harness collaboration. | `Node.js` `CLI` `Vault` `Agents` |
 | [attest-proxy](https://github.com/AdverserialAI/attest-proxy) | Attested ingress that validates scoped entitlements, handles encrypted request bodies, calls local inference, and emits signed receipts and meter records. | `Go` `TDX` `NVIDIA` `EHBP` `SGLang` |
 | [confidential-sdk](https://github.com/AdverserialAI/confidential-sdk) | TypeScript and Python SDKs, local gateway, verifier CLI, and integrations for Claude Code, Codex, OpenCode, Kimi Code, Pi, and Hermes. | `TypeScript` `Python` `CLI` `Plugins` |
 | [confidential-policy](https://github.com/AdverserialAI/confidential-policy) | Public policies and release manifests used by independent verifiers. | `Policies` `Digests` `Provenance` |
@@ -53,7 +92,8 @@ flowchart LR
 
 ## Start here
 
-- **Use a coding harness:** follow the [SDK installation and plugin guide](https://github.com/AdverserialAI/confidential-sdk#readme).
+- **Start confidential coding:** install [ACK and choose a harness](https://github.com/AdverserialAI/adverserial-confidential-kit#readme).
+- **Build a custom integration:** use the [TypeScript/Python SDK and plugin guide](https://github.com/AdverserialAI/confidential-sdk#readme).
 - **Verify a deployed runtime:** open the [Verification Center](https://verify.adverserial.ai) and compare evidence with the published [policy and manifests](https://github.com/AdverserialAI/confidential-policy).
 - **Review the confidentiality model:** see [How confidential inference works](https://adverserial.ai/confidential/).
 - **Report a vulnerability privately:** email [security@adverserial.ai](mailto:security@adverserial.ai). Do not disclose suspected vulnerabilities in public issues.
