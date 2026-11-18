@@ -78,6 +78,22 @@ installation is documented for the first published release.
 | [confidential-open-webui](https://github.com/AdverserialAI/confidential-open-webui) | Confidential-only Open WebUI distribution with browser-local conversations and a built-in Verification Center. | `Open WebUI` `IndexedDB` `Verification` |
 | [confidential-chat](https://github.com/AdverserialAI/confidential-chat) | Lightweight browser client and release-provenance tooling for confidential inference. | `Browser` `EHBP` `Receipts` |
 
+## Open-source security agents we maintain
+
+These repositories are the security-agent distributions we actively maintain.
+Forks preserve their upstream license and attribution; release artifacts from our
+distributions are published from the linked AdverserialAI repositories.
+
+| Agent | Maintained repository | Origin | License | Focus |
+| --- | --- | --- | --- | --- |
+| ARTEX Attack | [AdverserialAI/artex-attack](https://github.com/AdverserialAI/artex-attack) | [Autumn-27/ARTEX](https://github.com/Autumn-27/ARTEX) | AGPL-3.0 | English offensive-security distribution with confidential model provisioning and signed container releases. |
+| ARTEX Defense | [AdverserialAI/artex-defense](https://github.com/AdverserialAI/artex-defense) | ARTEX-derived defensive distribution | AGPL-3.0 | English defensive-security distribution with confidential model provisioning and signed container releases. |
+| Cairn | [AdverserialAI/Cairn](https://github.com/AdverserialAI/Cairn) | [oritera/Cairn](https://github.com/oritera/Cairn) | AGPL-3.0 | English multi-agent orchestration with confidential per-worker model provisioning. |
+| CyberStrikeAI | [AdverserialAI/CyberStrikeAI](https://github.com/AdverserialAI/CyberStrikeAI) | [AIPentest/CyberStrikeAI](https://github.com/AIPentest/CyberStrikeAI) | Apache-2.0 | AI-assisted penetration-testing agent. |
+| PentAGI | [AdverserialAI/pentagi](https://github.com/AdverserialAI/pentagi) | [vxcontrol/pentagi](https://github.com/vxcontrol/pentagi) | MIT | Autonomous penetration-testing system. |
+| HexStrike AI | [AdverserialAI/hexstrike-ai](https://github.com/AdverserialAI/hexstrike-ai) | [0x4m4/hexstrike-ai](https://github.com/0x4m4/hexstrike-ai) | MIT | AI security-tool orchestration and MCP server. |
+| Decepticon | [AdverserialAI/Decepticon](https://github.com/AdverserialAI/Decepticon) | [BitterSecurity/Decepticon](https://github.com/BitterSecurity/Decepticon) | Apache-2.0 | Autonomous security-testing agent. |
+
 ## How the public components fit together
 
 ```mermaid
