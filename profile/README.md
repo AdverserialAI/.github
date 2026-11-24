@@ -22,7 +22,7 @@ same public policy.
 
 | Capability | What it means |
 | --- | --- |
-| **Verified runtime** | Clients validate published policy, Intel TDX evidence, NVIDIA GPU evidence, release identity, and quote-bound keys before confidential inference. |
+| **Verified runtime** | Clients validate published policy, Intel TDX evidence, NVIDIA GPU evidence, release identity, and quote-bound keys before confidential inference. The runtime's signing and encryption keys are generated inside the confidential VM. |
 | **Encrypted prompt path** | Supported clients encrypt requests to the attested runtime. The public endpoint accepts a scoped entitlement rather than a user API credential. |
 | **Auditable output** | Each completed confidential inference carries a signed receipt that can be reviewed in the Verification Center. |
 | **Local conversation storage** | The confidential Open WebUI distribution stores saved conversations in the browser's IndexedDB, with an opt-in temporary-chat mode. |
@@ -46,13 +46,13 @@ policy. Run `ack` for the interactive console, or use direct commands.
 | In the console | What you get |
 | --- | --- |
 | **Code** | Searchable harness picker, installed-tool detection and terminal handoff. |
-| **Vault** | Named API keys, masked entry, add/replace/switch/delete, AES-256-GCM encryption backed by macOS Keychain. |
+| **Vault** | Named API keys, masked entry, add/replace/switch/delete, AES-256-GCM encryption with the storage key held in macOS Keychain or protected by Windows DPAPI. |
 | **Models** | Public model discovery and activation with an active matching policy. |
 | **Attestation** | Fresh hardware and pinned-receipt verification; evidence expiry is visible. |
 | **Swarms** | Selected harness workers, shared local briefs and explicit collaboration rooms. |
 | **Workspace** | Diagnostics, runtime lifecycle management, colorful ASCII branding and four console themes. |
 
-ACK currently requires **macOS, Node.js 18+, Python 3.10+**, an Adverserial API
+ACK currently requires **macOS or Windows, Node.js 18+, Python 3.10+**, an Adverserial API
 key and separately installed harness CLIs. Native verification commands and
 footers depend on the harness; the [integration guide](https://github.com/AdverserialAI/adverserial-confidential-kit#coding-harnesses)
 documents each one. The source install above is available now; npm registry
@@ -70,13 +70,14 @@ installation is documented for the first published release.
 | Repository | Purpose | Tags |
 | --- | --- | --- |
 | [adverserial-confidential-kit](https://github.com/AdverserialAI/adverserial-confidential-kit) | ACK: interactive confidential console, encrypted key vault, gateway lifecycle, model selection and multi-harness collaboration. | `Node.js` `CLI` `Vault` `Agents` |
-| [attest-proxy](https://github.com/AdverserialAI/attest-proxy) | Attested ingress that validates scoped entitlements, handles encrypted request bodies, calls local inference, and emits signed receipts and meter records. | `Go` `TDX` `NVIDIA` `EHBP` `SGLang` |
-| [confidential-sdk](https://github.com/AdverserialAI/confidential-sdk) | TypeScript and Python SDKs, local gateway, verifier CLI, and integrations for Claude Code, Codex, OpenCode, Kimi Code, Pi, and Hermes. | `TypeScript` `Python` `CLI` `Plugins` |
-| [confidential-policy](https://github.com/AdverserialAI/confidential-policy) | Public policies and release manifests used by independent verifiers. | `Policies` `Digests` `Provenance` |
-| [confidential-meter-ingress](https://github.com/AdverserialAI/confidential-meter-ingress) | mTLS meter ingress that verifies proxy-signed, count-only settlement records. | `Go` `mTLS` `Ed25519` `Metering` |
-| [confidential-infra](https://github.com/AdverserialAI/confidential-infra) | Reproducible confidential runtime composition and deployment documentation. | `Docker` `CVM` `Operations` |
-| [confidential-open-webui](https://github.com/AdverserialAI/confidential-open-webui) | Confidential-only Open WebUI distribution with browser-local conversations and a built-in Verification Center. | `Open WebUI` `IndexedDB` `Verification` |
-| [confidential-chat](https://github.com/AdverserialAI/confidential-chat) | Lightweight browser client and release-provenance tooling for confidential inference. | `Browser` `EHBP` `Receipts` |
+| [attest-proxy](https://github.com/AdverserialAI/attest-proxy) | The server that runs inside the confidential VM: terminates TLS, serves attestation evidence, validates scoped entitlements, decrypts request bodies, calls the model server, and signs receipts and usage records. Also the source of the GPU evidence collector and model measurer images. | `Go` `TDX` `NVIDIA` `EHBP` `SGLang` |
+| [confidential-infra](https://github.com/AdverserialAI/confidential-infra) | Deployment documentation. [`deployed/`](https://github.com/AdverserialAI/confidential-infra/tree/main/deployed) holds the Docker Compose file running in production and explains each service and how its hashes are computed. The rest is the October 2026 template, kept as history. | `Docker` `CVM` `Operations` |
+| [confidential-open-webui](https://github.com/AdverserialAI/confidential-open-webui) | Source of [chat.adverserial.ai](https://chat.adverserial.ai): a confidential-only Open WebUI distribution with browser-local conversations and a built-in Verification Center. | `Open WebUI` `IndexedDB` `Verification` |
+| [confidential-sdk](https://github.com/AdverserialAI/confidential-sdk) | TypeScript and Python verification libraries, local gateway, verifier CLI, and harness plugins. Not updated since October 2026 and still targets an earlier model; the maintained copy ships inside adverserial-confidential-kit. | `TypeScript` `Python` `CLI` `Plugins` |
+| [confidential-policy](https://github.com/AdverserialAI/confidential-policy) | Policy and release-manifest schemas, a validator, and older policy templates. **Not the live policy**: that is published at [verify.adverserial.ai/policies/production.json](https://verify.adverserial.ai/policies/production.json). | `Schemas` `Templates` |
+| [confidential-meter-ingress](https://github.com/AdverserialAI/confidential-meter-ingress) | Optional mTLS ingress for proxy-signed, count-only usage records. **Not used in production**, where the proxy posts signed records directly to billing. | `Go` `mTLS` `Ed25519` `Metering` |
+| [confidential-chat](https://github.com/AdverserialAI/confidential-chat) | The earlier lightweight static browser client. **Not deployed**; superseded by confidential-open-webui. | `Browser` `EHBP` `Receipts` |
+| cyberseek-transparency | Independent Python verifier, hash-chained attestation history and deployment files for the production service. Being published. | `Python` `Verifier` `Transparency` |
 
 ## Open-source security agents we maintain
 
@@ -98,19 +99,32 @@ distributions are published from the linked AdverserialAI repositories.
 
 ```mermaid
 flowchart LR
-    C[Browser / SDK / coding harness] -->|verify policy & evidence| V[verify.adverserial.ai]
+    C[Browser / ACK / coding harness] -->|fetch published policy| V[verify.adverserial.ai]
+    C -->|fresh nonce| P
+    P -->|TDX quote + GPU evidence| C
+    C -->|short-lived entitlement, no prompt| B[Billing]
     C -->|encrypted request + entitlement| P[attest-proxy]
-    P -->|loopback inference| M[Confidential model runtime]
-    P -->|signed count-only meter record| B[Billing]
+    subgraph VM[Confidential VM: Intel TDX + 8x NVIDIA H200]
+        P -->|internal network, per-boot token| M[SGLang model server]
+    end
+    P -->|signed count-only usage record| B
     P -->|signed inference receipt| C
-    R[confidential-policy] --> V
 ```
+
+The service runs in one Intel TDX confidential VM on Phala Cloud with eight
+NVIDIA H200 GPUs in confidential mode. `api.adverserial.ai` reaches it through
+a gateway that passes TLS bytes through; TLS ends in `attest-proxy` inside the
+VM. The model server has no published port. Since `attest-proxy`
+`v0.1.0-rc.31` the receipt, meter, encryption and TLS keys are all generated
+inside the VM; earlier releases used seeds generated by the operator. The
+published policy is served over HTTPS and is not itself signed; receipts are.
 
 ## Start here
 
 - **Start confidential coding:** install [ACK and choose a harness](https://github.com/AdverserialAI/adverserial-confidential-kit#readme).
-- **Build a custom integration:** use the [TypeScript/Python SDK and plugin guide](https://github.com/AdverserialAI/confidential-sdk#readme).
-- **Verify a deployed runtime:** open the [Verification Center](https://verify.adverserial.ai) and compare evidence with the published [policy and manifests](https://github.com/AdverserialAI/confidential-policy).
+- **Build a custom integration:** read the [TypeScript/Python SDK](https://github.com/AdverserialAI/confidential-sdk#readme) for the protocol, and take current code from the kit, which carries the maintained copy.
+- **Verify a deployed runtime:** open the [Verification Center](https://verify.adverserial.ai) and compare evidence with the published [policy](https://verify.adverserial.ai/policies/production.json) and [release manifests](https://verify.adverserial.ai/releases/index.json).
+- **See exactly what is deployed:** read the [production Docker Compose file and its explanation](https://github.com/AdverserialAI/confidential-infra/tree/main/deployed).
 - **Review the confidentiality model:** see [How confidential inference works](https://adverserial.ai/confidential/).
 - **Report a vulnerability privately:** email [security@adverserial.ai](mailto:security@adverserial.ai). Do not disclose suspected vulnerabilities in public issues.
 
