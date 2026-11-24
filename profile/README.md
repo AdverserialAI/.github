@@ -71,13 +71,13 @@ installation is documented for the first published release.
 | --- | --- | --- |
 | [adverserial-confidential-kit](https://github.com/AdverserialAI/adverserial-confidential-kit) | ACK: interactive confidential console, encrypted key vault, gateway lifecycle, model selection and multi-harness collaboration. | `Node.js` `CLI` `Vault` `Agents` |
 | [attest-proxy](https://github.com/AdverserialAI/attest-proxy) | The server that runs inside the confidential VM: terminates TLS, serves attestation evidence, validates scoped entitlements, decrypts request bodies, calls the model server, and signs receipts and usage records. Also the source of the GPU evidence collector and model measurer images. | `Go` `TDX` `NVIDIA` `EHBP` `SGLang` |
-| [confidential-infra](https://github.com/AdverserialAI/confidential-infra) | Deployment documentation. [`deployed/`](https://github.com/AdverserialAI/confidential-infra/tree/main/deployed) holds the Docker Compose file running in production and explains each service and how its hashes are computed. The rest is the October 2026 template, kept as history. | `Docker` `CVM` `Operations` |
+| [confidential-infra](https://github.com/AdverserialAI/confidential-infra) | Deployment documentation. [`deployed/`](https://github.com/AdverserialAI/confidential-infra/tree/main/deployed) holds the Docker Compose file running in production and the app-compose document the VM measured, and explains each service and how its hashes are computed. The rest is the October 2026 template, kept as history. | `Docker` `CVM` `Operations` |
 | [confidential-open-webui](https://github.com/AdverserialAI/confidential-open-webui) | Source of [chat.adverserial.ai](https://chat.adverserial.ai): a confidential-only Open WebUI distribution with browser-local conversations and a built-in Verification Center. | `Open WebUI` `IndexedDB` `Verification` |
 | [confidential-sdk](https://github.com/AdverserialAI/confidential-sdk) | TypeScript and Python verification libraries, local gateway, verifier CLI, and harness plugins. Not updated since October 2026 and still targets an earlier model; the maintained copy ships inside adverserial-confidential-kit. | `TypeScript` `Python` `CLI` `Plugins` |
 | [confidential-policy](https://github.com/AdverserialAI/confidential-policy) | Policy and release-manifest schemas, a validator, and older policy templates. **Not the live policy**: that is published at [verify.adverserial.ai/policies/production.json](https://verify.adverserial.ai/policies/production.json). | `Schemas` `Templates` |
 | [confidential-meter-ingress](https://github.com/AdverserialAI/confidential-meter-ingress) | Optional mTLS ingress for proxy-signed, count-only usage records. **Not used in production**, where the proxy posts signed records directly to billing. | `Go` `mTLS` `Ed25519` `Metering` |
 | [confidential-chat](https://github.com/AdverserialAI/confidential-chat) | The earlier lightweight static browser client. **Not deployed**; superseded by confidential-open-webui. | `Browser` `EHBP` `Receipts` |
-| cyberseek-transparency | Independent Python verifier, hash-chained attestation history and deployment files for the production service. Being published. | `Python` `Verifier` `Transparency` |
+| [cyberseek-transparency](https://github.com/AdverserialAI/cyberseek-transparency) | Independent Python verifier, hash-chained attestation history and deployment files for the production service. The current release is published there as pending: it has not been verified live yet, and the history holds no passing entry. | `Python` `Verifier` `Transparency` |
 
 ## Open-source security agents we maintain
 
@@ -112,7 +112,15 @@ flowchart LR
 ```
 
 The service runs in one Intel TDX confidential VM on Phala Cloud with eight
-NVIDIA H200 GPUs in confidential mode. `api.adverserial.ai` reaches it through
+NVIDIA H200 GPUs, on the OS image `dstack-0.6.5` since 2026-11-24. The GPUs
+run in NVIDIA's multi-GPU Protected PCIe mode. The OS's own GPU attestation at
+boot is switched off in the measured configuration (`"attest_gpu": false`, set
+by the hosting provider because that OS version cannot check this GPU mode),
+so nothing in the measured boot chain currently verifies the mode; clients
+check NVIDIA's remote attestation of the GPUs instead, which does not by
+itself prove it. Details are in
+[confidential-infra `deployed/`](https://github.com/AdverserialAI/confidential-infra/tree/main/deployed#gpu-attestation-by-the-os-is-switched-off).
+`api.adverserial.ai` reaches the VM through
 a gateway that passes TLS bytes through; TLS ends in `attest-proxy` inside the
 VM. The model server has no published port. Since `attest-proxy`
 `v0.1.0-rc.31` the receipt, meter, encryption and TLS keys are all generated
